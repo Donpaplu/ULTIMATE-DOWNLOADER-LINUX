@@ -1,0 +1,51 @@
+# ============================================================
+# DEPENDENCIES.txt — Ultimate Downloader (Linux / Fedora KDE)
+# ============================================================
+# This file lists every dependency, why it's needed, and how
+# to install it. The setup script (start.sh) handles Python
+# dependencies automatically. System packages must be installed
+# manually or via the one-liner in INSTALL.txt.
+# ============================================================
+
+
+## SYSTEM PACKAGES (via dnf — Fedora / RPM-based distros)
+# ─────────────────────────────────────────────────────────
+
+python3                 # Python 3.9+ required (3.11+ recommended)
+python3-pip             # pip for installing Python packages into venv
+python3-venv            # virtualenv support (python3 -m venv)
+ffmpeg                  # REQUIRED — video/audio merging, thumbnail conversion,
+                        # subtitle embedding. yt-dlp calls ffmpeg heavily.
+                        # On Fedora: enable RPM Fusion first (see INSTALL.txt)
+atomicparsley           # Optional — embeds thumbnails into MP3/M4A files.
+                        # Without it, --embed-thumbnail may fail for audio.
+
+
+## PYTHON PACKAGES (installed into venv automatically by start.sh)
+# ─────────────────────────────────────────────────────────────────
+
+flask>=3.0.0            # Web framework — serves the UI and API endpoints
+psutil>=5.9.0           # Process control — pause/resume/kill yt-dlp processes
+yt-dlp                  # The actual downloader binary (latest from PyPI)
+                        # Installed as a Python package + CLI binary in venv
+
+
+## OPTIONAL BUT RECOMMENDED
+# ──────────────────────────
+
+aria2c                  # Faster downloads via external downloader
+                        # yt-dlp flag: --downloader aria2c
+                        # Install: sudo dnf install aria2
+
+nodejs                  # Only needed if yt-dlp encounters JS-challenge errors
+                        # (e.g. "Couldn't find any suitable js interpreter").
+                        # yt-dlp uses its own bundled JS engine by default.
+                        # Install: sudo dnf install nodejs
+
+
+## BROWSER (for clipboard paste button)
+# ──────────────────────────────────────
+# The 📋 Paste button uses the Clipboard API, which requires:
+#   - HTTPS OR localhost (already satisfied — app runs on 127.0.0.1)
+#   - Browser clipboard permission granted
+# Firefox and Chromium both work fine on localhost.

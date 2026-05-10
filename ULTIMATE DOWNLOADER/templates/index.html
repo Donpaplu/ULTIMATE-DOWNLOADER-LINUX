@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ULTIMATE DOWNLOADER</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
+</head>
+
+<body>
+
+<div class="app-container">
+
+  <!-- ── HEADER ── -->
+  <div class="header">
+    <div class="header-content">
+        <img src="{{ url_for('static', filename='logo.png') }}" class="header-logo" onerror="this.style.display='none'">
+        <h1>ULTIMATE DOWNLOADER</h1>
+    </div>
+  </div>
+
+  <!-- ── MAIN CONTROLS ── -->
+  <div class="section">
+    <div class="section-title">⬇ Select Operation</div>
+
+    <div class="tabs">
+      <button class="tab active"  data-mode="best_vid"   onclick="setMode(this)">Video – Best</button>
+      <button class="tab"         data-mode="custom_vid"  onclick="setMode(this)">Video – Custom</button>
+      <button class="tab"         data-mode="audio"       onclick="setMode(this)">Audio Only</button>
+      <button class="tab"         data-mode="best_pl"     onclick="setMode(this)">Playlist – Best</button>
+      <button class="tab"         data-mode="custom_pl"   onclick="setMode(this)">Playlist – Custom</button>
+      <button class="tab"         data-mode="audio_pl"    onclick="setMode(this)">Playlist – Audio</button>
+      <button class="tab"         data-mode="batch"       onclick="setMode(this)">Batch (.txt)</button>
+    </div>
+
+    <!-- URL input -->
+    <div class="field" id="f-url">
+      <label>Target URL</label>
+      <div style="display:flex;gap:8px;">
+        <input type="text" id="url" placeholder="Paste YouTube / Playlist URL here…" style="flex:1;">
+        <button class="btn btn-outline"
+          onclick="navigator.clipboard.readText().then(t=>document.getElementById('url').value=t).catch(()=>alert('Allow clipboard permissions in browser settings, or use Ctrl+V'))"
+          style="padding:0 16px;">📋 Paste</button>
+        <button class="btn"
+          onclick="document.getElementById('url').value=''"
+          style="padding:0 14px;">✕</button>
+      </div>
+    </div>
+
+    <!-- Batch file input -->
+    <div class="field hidden" id="f-batch">
+      <label>Batch .txt File Path</label>
+      <input type="text" id="batch_file" placeholder="/home/user/Downloads/urls.txt">
+    </div>
+
+    <!-- Custom save path -->
+    <div class="field">
+      <label>Custom Save Path <span style="text-transform:none;color:var(--text-dim)">(leave blank to use defaults)</span></label>
+      <input type="text" id="cust_path" placeholder="e.g. /run/media/Papludon/sda2/videos/Movies">
+    </div>
+
+    <!-- Subtitles + Speed limit row -->
+    <div class="field-row" id="f-subrate">
+      <div class="field" id="f-subs-wrap">
+        <label class="checkbox-label">
+          <input type="checkbox" id="subs"> Download English / Hindi Subtitles
+        </label>
+      </div>
+      <div class="field" id="f-rate-wrap">
+        <label>Speed Limit <span style="text-transform:none;color:var(--text-dim)">(all modes)</span></label>
+        <input type="text" id="rate" placeholder="e.g. 2M or 500K  (M = MB/s, K = KB/s)">
+      </div>
+    </div>
+
+    <!-- Playlist items range -->
+    <div class="field hidden" id="f-items">
+      <label>Playlist Items <span style="text-transform:none;color:var(--text-dim)">(e.g. 1,3 or 2-8 — blank = all)</span></label>
+      <input type="text" id="pl_items" placeholder="1-10">
+    </div>
+
+    <!-- Audio format / quality / batch mode -->
+    <div class="hidden" id="f-audio">
+      <hr class="divider">
+      <div class="field-row three">
+        <div class="field">
+          <label>Audio Format</label>
+          <select id="afmt">
+            <option value="mp3">MP3</option>
+            <option value="m4a">M4A</option>
+            <option value="flac">FLAC</option>
+            <option value="wav">WAV</option>
+            <option value="opus">Opus</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Quality <span style="text-transform:none;color:var(--text-dim)">(0=Best, 9=Worst)</span></label>
+          <input type="number" id="qual" value="0" min="0" max="9">
+        </div>
+        <div class="field hidden" id="f-bmode">
+          <label>Batch Mode</label>
+          <select id="batch_mode">
+            <option value="video">Video (MP4)</option>
+            <option value="audio">Audio Only</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Custom format code + extra args -->
+    <div class="hidden" id="f-custom">
+      <hr class="divider">
+      <div style="display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;">
+        <div class="field" style="flex:1;margin-bottom:0;min-width:220px;">
+          <label>Format Code <span style="color:var(--warning)">*</span></label>
+          <input type="text" id="vformat" placeholder="e.g. 137+140 or bestvideo+bestaudio">
+        </div>
+        <button class="btn btn-outline" onclick="openFormatPicker()"
+          style="height:41px;padding:0 20px;font-family:'JetBrains Mono',monospace;font-size:13px;">
+          ⊞ PICK FORMAT
+        </button>
+        <div class="field" style="flex:2;margin-bottom:0;min-width:220px;">
+          <label>Extra yt-dlp Args</label>
+          <input type="text" id="extra" placeholder="--write-description --no-mtime">
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider">
+    <button class="btn btn-primary" id="dl-btn" onclick="startDownload()">▶ Start Download</button>
+  </div>
+
+  <!-- ── PROGRESS ── -->
+  <div class="section hidden" id="sec-progress">
+    <div class="section-title">Download Progress</div>
+    <div class="progress-wrap">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+        <div>
+          <div style="font-weight:600;font-size:14px;color:var(--primary);" id="prog-status-text">Status: Preparing…</div>
+          <div style="font-size:12px;color:var(--text-dim);margin-top:4px;font-family:'JetBrains Mono',monospace;" id="prog-filename">File: —</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:13px;font-weight:500;color:var(--text-main);" id="prog-items">Files: —</div>
+        </div>
+      </div>
+
+      <div id="track-1-wrap">
+        <label id="track-1-label" style="font-size:11px;color:var(--text-dim);display:block;margin-bottom:4px;text-transform:uppercase;">
+          Video / Base Track
+        </label>
+        <div class="progress-bar-bg">
+          <div class="progress-fill" id="prog-fill-vid"></div>
+        </div>
+      </div>
+
+      <div id="track-2-wrap">
+        <label style="font-size:11px;color:var(--text-dim);display:block;margin-bottom:4px;text-transform:uppercase;">
+          Audio Track <span style="text-transform:none">(if merging)</span>
+        </label>
+        <div class="progress-bar-bg">
+          <div class="progress-fill" id="prog-fill-aud" style="background:var(--warning);"></div>
+        </div>
+      </div>
+
+      <div class="progress-stats">
+        <span id="prog-speed">Speed: —</span>
+        <span id="prog-pct" style="font-weight:700;color:var(--primary);font-size:14px;">0%</span>
+      </div>
+    </div>
+
+    <div id="prog-controls" style="margin-top:15px;display:flex;gap:10px;flex-wrap:wrap;"></div>
+  </div>
+
+  <!-- ── CONSOLE ── -->
+  <div class="section">
+    <div class="console-header">
+      <span class="section-title" style="margin:0;">// Console Output</span>
+      <button class="btn" onclick="document.getElementById('console').textContent='Ready…\n'"
+        style="padding:4px 10px;font-size:11px;">Clear</button>
+    </div>
+    <div class="console-container" id="console">Ready…</div>
+  </div>
+
+  <!-- ── TOOLS ── -->
+  <div class="section">
+    <div class="section-title">// yt-dlp Tools &amp; Utilities</div>
+
+    <label style="margin-top:10px;margin-bottom:10px;font-size:11px;color:var(--text-dim);">MAINTENANCE</label>
+    <div class="tool-grid">
+      <button class="tool-btn" onclick="runTool('update')">⬆ Update yt-dlp</button>
+      <button class="tool-btn" onclick="runTool('cache')">🗑 Clear Cache</button>
+      <button class="tool-btn" onclick="runTool('version')">ℹ Version Check</button>
+    </div>
+
+    <label style="margin-top:20px;margin-bottom:10px;font-size:11px;color:var(--text-dim);">INFO / INSPECT (URL required below)</label>
+    <div class="tool-grid">
+      <button class="tool-btn" style="border-color:var(--primary);color:var(--primary);" onclick="runTool('formats')">📋 List Formats</button>
+      <button class="tool-btn" onclick="runTool('subs')">💬 List Subtitles</button>
+      <button class="tool-btn" onclick="runTool('info')">🔍 Get Metadata</button>
+      <button class="tool-btn" onclick="runTool('get_url')">🔗 Get Direct URL</button>
+    </div>
+
+    <label style="margin-top:20px;margin-bottom:10px;font-size:11px;color:var(--text-dim);">DOWNLOAD EXTRAS (URL required below)</label>
+    <div class="tool-grid">
+      <button class="tool-btn" onclick="runTool('thumbnail')">🖼 Thumbnail Only</button>
+      <button class="tool-btn" onclick="runTool('subs_only')">📝 Subtitles Only</button>
+      <button class="tool-btn" onclick="runTool('description')">📄 Description .txt</button>
+      <button class="tool-btn" onclick="runTool('resume')">⏯ Resume Download</button>
+    </div>
+
+    <div class="field" style="margin-top:20px;margin-bottom:0;">
+      <label style="font-size:11px;color:var(--text-dim);">TOOL URL (for Inspect / Download-Extra tools)</label>
+      <input type="text" id="tool-url" placeholder="https://www.youtube.com/watch?v=…">
+    </div>
+  </div>
+
+  <!-- ── PATH SETTINGS ── -->
+  <div class="section">
+    <div class="section-title">
+      // Path Settings
+      <span style="background:var(--warning);color:#000;padding:2px 6px;border-radius:4px;font-size:10px;margin-left:8px;font-weight:700;">SESSION ONLY</span>
+    </div>
+    <p style="font-size:12px;color:var(--text-dim);margin-bottom:20px;">
+      Overrides defaults for this session. Edit <code>config/settings.py</code> to make permanent.
+    </p>
+
+    <div class="field-row">
+      <div class="field"><label>Video Output Dir</label><input type="text" id="s-vid" class="path-input" placeholder="Loading…"></div>
+      <div class="field"><label>Playlist Output Dir</label><input type="text" id="s-pl" class="path-input" placeholder="Loading…"></div>
+    </div>
+    <div class="field-row" style="margin-top:4px;">
+      <div class="field"><label>Music Output Dir</label><input type="text" id="s-mus" class="path-input" placeholder="Loading…"></div>
+      <div class="field"><label>Music Playlist Dir</label><input type="text" id="s-mus-pl" class="path-input" placeholder="Loading…"></div>
+    </div>
+    <div class="field" style="margin-top:4px;">
+      <label>Cookies File Path</label>
+      <input type="text" id="s-ck" class="path-input" placeholder="Loading…">
+    </div>
+  </div>
+
+  <!-- ── SERVER CONTROL ── -->
+  <div class="section" style="display:flex;justify-content:space-between;align-items:center;padding:16px 24px;">
+    <span style="font-size:12px;color:var(--text-dim);">
+      Server running at <code style="color:var(--primary)">127.0.0.1:5000</code>
+    </span>
+    <button class="btn btn-shutdown" onclick="shutdownServer()">⏻ Stop Server</button>
+  </div>
+
+</div><!-- /app-container -->
+
+<!-- ── FORMAT PICKER MODAL ── -->
+<div id="format-modal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <span class="modal-title">Select Format — click up to 2 items to combine (video + audio)</span>
+      <button class="btn" onclick="closeFormatPicker()" style="padding:4px 10px;font-size:12px;">✕ Close</button>
+    </div>
+    <div id="format-table-wrap">
+      <div id="fmt-loading" style="padding:40px 20px;text-align:center;color:var(--text-dim);font-size:14px;">
+        Fetching formats… Please wait.
+      </div>
+      <table id="fmt-table" class="hidden">
+        <thead>
+          <tr>
+            <th>ID / LANG</th>
+            <th>EXT</th>
+            <th>RESOLUTION</th>
+            <th>VCODEC</th>
+            <th>ACODEC</th>
+            <th>LANGUAGE</th>
+            <th>NOTE</th>
+            <th>SIZE</th>
+          </tr>
+        </thead>
+        <tbody id="fmt-tbody"></tbody>
+      </table>
+    </div>
+    <div class="modal-foot">
+      <span style="font-size:13px;color:var(--text-dim);">
+        Selected: <strong id="fmt-selected" style="color:var(--text-main);">None</strong>
+      </span>
+      <button class="btn btn-primary" id="btn-apply"
+        style="width:auto;padding:8px 20px;" onclick="applyFormat()" disabled>
+        Apply Format
+      </button>
+    </div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
