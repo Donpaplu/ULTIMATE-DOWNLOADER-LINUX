@@ -1,4 +1,10 @@
+[README.md](https://github.com/user-attachments/files/27607269/README.md)
 # yt-dlp Ultimate Downloader — Linux Edition (Fedora KDE)
+
+## Quick Start
+
+### First-time setup (run once)
+```bash# yt-dlp Ultimate Downloader — Linux Edition (Fedora KDE)
 
 ## Quick Start
 
@@ -51,6 +57,32 @@ ultimate-downloader-linux/
 ---
 
 ## Configuration
+
+### Option A — GUI path configurator (recommended)
+
+Run this from the app folder:
+```bash
+python3 configure_paths.py
+# or if venv is active:
+./venv/bin/python configure_paths.py
+```
+
+You'll get a menu like this:
+```
+  ✔ [1] 📁 Video Output Directory
+        /run/media/Papludon/sda2/videos
+  ✔ [2] 📁 Playlist Output Directory
+        ...
+  [a] Change ALL at once
+  [s] Save & exit
+  [q] Quit without saving
+```
+
+Picking an option opens a **native KDE folder/file picker** (kdialog).
+If kdialog isn't available it falls back to zenity (GTK), then plain terminal input.
+Changes are previewed before writing — nothing is saved until you confirm with `[s] → y`.
+
+### Option B — Edit settings.py directly
 
 Edit **`config/settings.py`** to set permanent paths:
 
